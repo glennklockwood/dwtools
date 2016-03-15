@@ -11,19 +11,6 @@
 #define _STAGE_IN   0
 #define _STAGE_OUT  1
 
-int time_stage_file_in( char *infile, char *outfile ) {
-}
-int time_stage_file_out( char *infile, char *outfile ) {
-}
-
-/*
-    ret = dw_stage_directory_in(argv[2], argv[3]);
-    ret = dw_wait_directory_stage(argv[2]);
-
-    ret = dw_stage_directory_out(argv[2], argv[3], DW_STAGE_IMMEDIATE);
-    ret = dw_wait_directory_stage(argv[2]);
-*/
-
 int main(int argc, char **argv)
 {
     struct timespec t0, tf, dt;
@@ -67,8 +54,7 @@ int main(int argc, char **argv)
     /*
      *
     int dw_stage_file_in( const char *dw_file_path, const char *pfs_file_path )
-    int dw_stage_file_out( const char *dw_file_path, const char *pfs_file_path,
-        enum dw_stage_type stage_type )
+    int dw_stage_file_out( const char *dw_file_path, const char *pfs_file_path, enum dw_stage_type stage_type )
      *
      */
     if ( S_ISREG( st.st_mode ) ) {

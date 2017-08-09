@@ -9,7 +9,8 @@ before compilation.
   and returns the observed transfer rate
 - `dw_get_accounting_data.c` is a wrapper for `dw_get_accounting_data_json(3)`
   API call available in CLE6.0UP04 suitable for inserting in the beginning and
-  end of a job script
+  end of a job script.  Run using `dw_get_accounting_data $DW_JOB_STRIPED` from
+  a DataWarp client.
 - `dw_get_accounting_data.json` is a sample output from `dw_get_accounting_data.c`
   for a small allocation on Gerty at NERSC
 

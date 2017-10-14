@@ -1,62 +1,102 @@
 #!/usr/bin/env python
-#
-#  Basic interaction with the DataWarp API
-#
-#  To do:
-#    1. REST error checking (wrap calls in proper Python)
-#
-#  On NERSC systems, do `module load dws` on an internal node to load the
-#  prerequisite Python libraries
-#
+"""
+Demonstrate basic interaction with the DataWarp REST API.
 
-import requests
+On NERSC systems, do `module load dws` on an internal node to load the
+prerequisite CLI commands (dwgateway).
+"""
+
+import json
+import argparse
 import subprocess
+import requests
+import requests.packages.urllib3 as urllib3
 
 # curl -H "Authorization: MUNGE cred=$(munge -n)" $(dwgateway)/dw/v1/${endpoint}/ > ${endpoint}.json
 
-def subprocess_check_output( cmd ):
+class DwGateway(object):
     """
-    because subprocess.check_output doesn't exist before Python 2.7
+    Simple handle to interact with the DataWarp REST API
     """
-    p = subprocess.Popen( cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-    out, _ = p.communicate()
-    if p.returncode != 0:
-        raise subprocess.CalledProcessError
-    return out.strip()
+    def __init__(self, api_version=None, verify_ssl=False):
+        """
+        Set the necessary constants to use the DataWarp REST API
+        """
+        self.api_key = None
+        self.gateway = None
+        self.verify_ssl = verify_ssl
+        self.set_gateway()
+        self.set_api_key()
+        self.base_uri = self.gateway.rstrip('/') + '/dw/'
+        self.headers = {'Authorization' : ('MUNGE cred=%s' % self.api_key)}
 
-def main():
-    apikey = subprocess_check_output( [ 'munge', '-n' ] )
-    dwgateway = subprocess_check_output( 'dwgateway' )
-    headers = { 'Authorization' : ('MUNGE %s' % apikey) }
-    uri = dwgateway.rstrip('/') + '/dw/'
+        if api_version is None:
+            avail_versions = self.get_api_versions()
+            self.api_version = avail_versions[-1].rstrip('/') + '/'
+        else:
+            self.api_version = api_version.rstrip('/') + '/'
 
-    ### print topmost json
-    print "Our DataWarp gateway URI is %s" % uri
-    r = requests.get( uri, headers=headers )
-    dw_versions = r.json()['versions']
+    def set_gateway(self):
+        """
+        Get a new DataWarp API endpoint
+        """
+        self.gateway = subprocess.check_output('dwgateway').strip()
 
-    ### start looking for queryable versions
-    dw_version_ids = []
-    for dw_version in dw_versions:
-        if 'id' in dw_version:
-            dw_version_ids.append( dw_version['id'] )
+    def set_api_key(self):
+        """
+        Get the MUNGE credential needed to talk to DataWarp
+        """
+        self.api_key = subprocess.check_output(['munge', '-n']).strip()
 
-    ### find toplevel API endpoints for each version
-    dw_endpoints = []
-    for dw_version_uri in [ uri + x for x in dw_version_ids ]:
-        r = requests.get( dw_version_uri, headers=headers )
-        versions_dict = r.json()
-        print "found version uri %s" % dw_version_uri
-        ### since we request only one version, versions.dict should contain
-        ### exactly one item (the version we requested)
-        for dw_version_id, dw_version_dict in versions_dict.iteritems():
-            print "confirmed that %s issues a valid response" % dw_version_id
-            for endpoint_dict in dw_version_dict:
-                if 'id' in endpoint_dict:
-                    print "  found endpoint: %s (%s)" % (
-                        endpoint_dict['id'],
-                        endpoint_dict['description'] if 'description' in endpoint_dict else '???'
-                        )
+    def get_api_versions(self):
+        """
+        Ask DataWarp gateway about its supported API versions
+        """
+        result = requests.get(self.base_uri,
+                              headers=self.headers,
+                              verify=self.verify_ssl)
+        dw_version_ids = []
+        for dw_version in result.json()['versions']:
+            if 'id' in dw_version:
+                dw_version_ids.append(dw_version['id'])
+        return dw_version_ids
 
+    def get(self, path="", version=None):
+        """
+        Send a REST request to a DataWarp gateway
+        """
+        if version is None:
+            version = self.api_version
+        query_uri = self.base_uri + version + path
+        return requests.get(query_uri,
+                            headers=self.headers,
+                            verify=self.verify_ssl)
+
+
+def dw_rest_explore():
+    """
+    Issue a query the DataWarp REST API and return the results
+    """
+    parser = argparse.ArgumentParser(description='Explore the DataWarp REST API')
+    parser.add_argument('path', type=str, nargs='?', default="", help="REST API path to query")
+    parser.add_argument('--api-version', type=str, default=None, help="REST API version to use")
+    parser.add_argument('--warnings', action='store_true', help="Print SSL certificate warnings")
+    args = parser.parse_args()
+
+    if not args.warnings:
+        urllib3.disable_warnings()
+
+    dwgateway = DwGateway()
+
+    print "Our DataWarp gateway URI is %s" % dwgateway.base_uri
+
+    print "Using API version %s (available versions: %s)" % (
+        dwgateway.api_version,
+        ', '.join(dwgateway.get_api_versions()))
+
+    results = dwgateway.get(args.path)
+
+    print json.dumps(results.json(), indent=4, sort_keys=True)
+    
 if __name__ == '__main__':
-    main()
+    dw_rest_explore()

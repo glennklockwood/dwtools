@@ -21,7 +21,10 @@ DataWarp C API Examples
 DataWarp REST API Examples
 --------------------------------------------------------------------------------
 
-- `dw_rest_explore.py` demonstrates how to use the DataWarp API from within Python
+- `dw_rest_explore.py` demonstrates how to use the DataWarp API from within
+  Python and facilitates interactive exploration of the REST API.  Start by
+  running this command with no arguments, then optionally specify paths to see
+  what they return.  Not as nice as `dwstat`, but simpler to understand.
 
 Example Output Formats
 --------------------------------------------------------------------------------

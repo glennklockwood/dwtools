@@ -30,20 +30,20 @@ requires the following steps:
 
 where
 
-    * `--hosts $(uname -n)` specifies the clients to which this session will be
-      mounted.  **Question**: how does this work with persistent reservations
-      whose clients are determined when its activations are created?  Or are all
-      clients usually just allowed to access all sessions at this level, and
-      correct client mapping is done upon activation?
-    * `--owner $(id -u)` specifies the user who owns this session
-    * `--creator` specifies the user who created this session.  I'm not sure
-      what this is for, but it is probably related to the idea that only
-      privileged users (e.g., the workload manager) can create DataWarp sessions
-      on behalf of unprivileged users.
-    * `--token my_session` is an arbitrary label for this session.  Slurm uses
-      this to store the jobid that created this session; I think it's really
-      just a place where an upstream middleware can store whatever information
-      it wants to.
+* `--hosts $(uname -n)` specifies the clients to which this session will be
+  mounted.  **Question**: how does this work with persistent reservations
+  whose clients are determined when its activations are created?  Or are all
+  clients usually just allowed to access all sessions at this level, and
+  correct client mapping is done upon activation?
+* `--owner $(id -u)` specifies the user who owns this session
+* `--creator` specifies the user who created this session.  I'm not sure
+  what this is for, but it is probably related to the idea that only
+  privileged users (e.g., the workload manager) can create DataWarp sessions
+  on behalf of unprivileged users.
+* `--token my_session` is an arbitrary label for this session.  Slurm uses
+  this to store the jobid that created this session; I think it's really
+  just a place where an upstream middleware can store whatever information
+  it wants to.
 
 Then do the following to verify it exists:
 
@@ -74,17 +74,17 @@ Now create a configuration:
 
 where
 
-    * `--root-permissions` is required by the REST API but **not** by the
-      `dwcli` command.  This should probably have a reasonable default value
-      in the `dwcli` command so that it is truly an optional parameter when
-      it is required by the API for some `--access-mode` values.
-    * `--group $(id -g)` is also required by the REST API but **not** by the
-      `dwcli` command.  Should probably have a default value or something.
-    * `--access-mode stripe` defines whether to make a scratch, cache, or swap
-      configuration.  You can also specify an invalid value to let the API kick
-      back a list of valid options for this field.  Again, not listed as a
-      required argument by the `dwcli`, but it is definitely required by the
-      REST API.
+* `--root-permissions` is required by the REST API but **not** by the
+  `dwcli` command.  This should probably have a reasonable default value
+  in the `dwcli` command so that it is truly an optional parameter when
+  it is required by the API for some `--access-mode` values.
+* `--group $(id -g)` is also required by the REST API but **not** by the
+  `dwcli` command.  Should probably have a default value or something.
+* `--access-mode stripe` defines whether to make a scratch, cache, or swap
+  configuration.  You can also specify an invalid value to let the API kick
+  back a list of valid options for this field.  Again, not listed as a
+  required argument by the `dwcli`, but it is definitely required by the
+  REST API.
 
 Verify that it was created and note the `conf` id:
 
